@@ -137,29 +137,33 @@ def find_two_majors(message: str) -> List[dict]:
 # ---------------------------------------------------------------------------
 
 def suggest_majors(stream: str, average: Optional[float]) -> str:
-    """يقترح تخصصات مناسبة بناءً على الشعبة والمعدل."""
+    """يقترح تخصصات مناسبة بناءً على الشعبة والمعدل مع ترتيب حسب القرب من المعدل."""
+    # تصفية التخصصات التي تقبل الشعبة المذكورة
     candidates = [m for m in MAJORS if stream in m["streams"]]
-    if average is not None:
-        candidates = sorted(candidates, key=lambda m: abs(m["min_average"] - average))
-        eligible = [m for m in candidates if m["min_average"] <= average + 1.5]
-        candidates = eligible if eligible else candidates
-    candidates = candidates[:5]
-
     if not candidates:
         return f"لم أجد تخصصات مطابقة لشعبة **{stream}** حاليًا في قاعدة البيانات. جرّب ذكر شعبة أخرى."
 
+    # إذا وُجد معدل، نرتب حسب الأقرب إلى min_average ثم نأخذ الأفضل (الأقل فرقًا)
+    if average is not None:
+        candidates = sorted(candidates, key=lambda m: abs(m["min_average"] - average))
+        # نأخذ فقط التخصصات التي يكون معدل الطالب قريبًا من المطلوب (في حدود 1.5 درجة)
+        eligible = [m for m in candidates if m["min_average"] <= average + 1.5]
+        candidates = eligible if eligible else candidates[:5]  # إذا لم يوجد مؤهل، نأخذ أقرب 5
+    else:
+        candidates = candidates[:5]  # بدون معدل، نعرض أول 5
+
     header = f"### 🎓 تخصصات مقترحة لشعبة **{stream}**" + (f" بمعدل **{average}**" if average else "") + "\n"
     lines = [header]
-    for m in candidates:
+    for idx, m in enumerate(candidates[:5], 1):
         lines.append(
-            f"- **{m['name']}** — {m['description']}\n"
-            f"  - المدة: {m['duration']}\n"
-            f"  - الحد الأدنى التقريبي للمعدل: {m['min_average']}\n"
-            f"  - فرص العمل: {', '.join(m['career_opportunities'][:3])}"
+            f"{idx}. **{m['name']}** — {m['description']}\n"
+            f"   - المدة: {m['duration']}\n"
+            f"   - الحد الأدنى للمعدل: {m['min_average']}\n"
+            f"   - نظام الدراسة: {m.get('study_system', 'غير محدد')}\n"
+            f"   - فرص العمل: {', '.join(m['career_opportunities'][:2])}"
         )
     lines.append("\nهل تريد شرحًا مفصلاً لأحد هذه التخصصات أو مقارنة بينها؟")
     return "\n".join(lines)
-
 
 def compare_majors(major_a: dict, major_b: dict) -> str:
     """يبني جدول مقارنة Markdown بين تخصصين."""
@@ -182,20 +186,43 @@ def compare_majors(major_a: dict, major_b: dict) -> str:
 
     return header + "\n" + "\n".join(table)
 
-
 def explain_major(major: dict) -> str:
-    """يبني تقريرًا كاملاً حول تخصص معيّن."""
-    return (
-        f"### 📘 {major['name']}\n\n"
-        f"{major['description']}\n\n"
-        f"**⏳ مدة الدراسة:** {major['duration']}\n\n"
-        f"**📚 أهم المواد الأساسية:**\n" + "\n".join(f"- {s}" for s in major['core_subjects']) + "\n\n"
-        f"**🧠 المهارات المطلوبة:**\n" + "\n".join(f"- {s}" for s in major['required_skills']) + "\n\n"
-        f"**💼 فرص العمل:**\n" + "\n".join(f"- {s}" for s in major['career_opportunities']) + "\n\n"
-        f"**🎓 الدراسات العليا الممكنة:**\n" + "\n".join(f"- {s}" for s in major['postgraduate_studies']) + "\n\n"
-        f"**🏫 الجامعات المتوفرة:** {', '.join(major['universities'])}"
-    )
-
+    """يبني تقريرًا كاملاً حول تخصص معيّن باستخدام كل البيانات المتوفرة."""
+    lines = [
+        f"### 📘 {major['name']}",
+        "",
+        major['description'],
+        "",
+        f"**⏳ مدة الدراسة:** {major['duration']}",
+        f"**📋 نظام الدراسة:** {major.get('study_system', 'غير محدد')}",
+        f"**🎯 الحد الأدنى التقريبي للمعدل:** {major['min_average']}",
+        f"**🧭 الشعب المسموحة:** {', '.join(major['streams'])}",
+        "",
+        "**📚 أهم المواد الأساسية:**",
+    ]
+    lines.extend(f"- {s}" for s in major['core_subjects'])
+    lines.extend([
+        "",
+        "**🧠 المهارات المطلوبة:**",
+    ])
+    lines.extend(f"- {s}" for s in major['required_skills'])
+    lines.extend([
+        "",
+        "**💼 فرص العمل:**",
+    ])
+    lines.extend(f"- {s}" for s in major['career_opportunities'])
+    lines.extend([
+        "",
+        "**🎓 الدراسات العليا الممكنة:**",
+    ])
+    lines.extend(f"- {s}" for s in major['postgraduate_studies'])
+    lines.extend([
+        "",
+        f"**🏫 الجامعات المتوفرة:** {', '.join(major['universities'])}",
+        "",
+        f"**🔑 الكلمات المفتاحية:** {', '.join(major['keywords'])}",
+    ])
+    return "\n".join(lines)
 
 def explain_lmd() -> str:
     return (
@@ -207,7 +234,46 @@ def explain_lmd() -> str:
         "يعتمد النظام على وحدات تعليمية (UE) ورصيد نقاط (ECTS) قابلة للتحويل بين الجامعات."
     )
 
+explain_engineer_state()
+    # أضف هذه القائمة مع بقية القوائم في بداية الملف
+ENGINEER_STATE_KEYWORDS = [
+    "مهندس دولة",
+    "نظام مهندس دولة",
+    "هندسة دولة",
+    "مدرسة وطنية عليا",
+    "ENP",
+    "ESI",
+    "EMP",
+    "مهندس حكومي",
+]
 
+# أضف هذه الدالة الجديدة
+def explain_engineer_state() -> str:
+    return (
+        "### 🎓 نظام مهندس دولة (Ingénieur d'État)\n\n"
+        "نظام مهندس دولة هو نظام دراسي موازٍ لنظام LMD، يُطبَّق في المدارس الوطنية العليا "
+        "والتي تُعد نخبوية وتتطلب مسابقة وطنية بعد البكالوريا (أو بعد الأقسام التحضيرية).\n\n"
+        "**خصائص النظام:**\n"
+        "- **المدة:** 5 سنوات دراسية (باستثناء بعض التخصصات كالطب التي قد تطول).\n"
+        "- **الهيكل:** سنتان تحضيريتان (في الأقسام التحضيرية المدمجة أو المستقلة) + 3 سنوات تخصص.\n"
+        "- **الشهادة:** تُمنح شهادة مهندس دولة، وهي معترف بها في سوق العمل المحلي والدولي.\n"
+        "- **التخصصات:** تشمل الهندسة المدنية، الكهربائية، الميكانيكية، الإعلام الآلي، الاتصالات، وغيرها.\n"
+        "- **المنافسة:** القبول يتم عبر مسابقة وطنية صارمة تعتمد على معدل البكالوريا ونتائج الاختبارات الكتابية والشفوية.\n\n"
+        "**أبرز المدارس:**\n"
+        "- المدرسة الوطنية المتعددة التقنيات (ENP الجزائر)\n"
+        "- المدرسة الوطنية العليا للإعلام الآلي (ESI)\n"
+        "- المدرسة العسكرية المتعددة التقنيات (EMP)\n"
+        "- المدرسة الوطنية العليا للري (ENSH)\n"
+        "- المدرسة الوطنية العليا للأشغال العمومية (ENSTP)\n\n"
+        "**الفرق بينه وبين LMD:**\n"
+        "- نظام LMD يُطبَّق في معظم الجامعات، ويمنح ليسانس (3 سنوات) + ماستر (سنتان).\n"
+        "- نظام مهندس دولة يمنح شهادة معادلة للماستر في بعض الجوانب، لكنه أكثر تركيزًا على الجانب التطبيقي والهندسي.\n"
+        "- المدارس العليا غالبًا ما توفر تكوينًا مكثفًا مع فرص تدريب ميدانية أفضل، ومعدلات توظيف مرتفعة.\n\n"
+        "هل لديك سؤال عن مدرسة معينة أو تخصص هندسي دقيق؟"
+    )
+    # 2.5) نظام مهندس دولة (يُفحص قبل LMD لأن بعض الكلمات قد تتداخل)
+if any(kw in lower_text for kw in ENGINEER_STATE_KEYWORDS):
+    return explain_engineer_state()
 def explain_registration() -> str:
     return (
         "### 📝 التسجيل الجامعي في الجزائر\n\n"
