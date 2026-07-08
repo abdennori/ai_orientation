@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>المساعد الذكي للتوجيه الجامعي | AI_Orientation</title>
+  <link rel="icon" type="image/png" href="/static/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- شارة زخرفية علوية: بوصلة توجيه بسيطة (العنصر المميز للتصميم) -->
+  <div class="compass-mark" aria-hidden="true">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="46" class="compass-ring" />
+      <circle cx="50" cy="50" r="2.5" class="compass-dot" />
+      <path d="M50 8 L58 50 L50 92 L42 50 Z" class="compass-needle" />
+      <path d="M8 50 L50 42 L92 50 L50 58 Z" class="compass-needle compass-needle-h" />
+    </svg>
+  </div>
+
+  <div class="app-shell">
+
+    <!-- ===================== الرأس ===================== -->
+    <header class="app-header">
+      <div class="header-brand">
+        <img src="/static/logo_icon.png" alt="شعار AI Orientation" class="brand-logo" />
+        <div class="brand-text">
+          <h1>المساعد الذكي للتوجيه الجامعي</h1>
+          <p class="brand-sub">دليلك نحو التخصص المناسب في الجزائر</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="theme-toggle" class="icon-btn" title="تبديل الوضع الليلي/الفاتح" aria-label="تبديل المظهر">
+          <span class="icon-sun">☀</span>
+          <span class="icon-moon">☾</span>
+        </button>
+        <button id="clear-chat" class="icon-btn" title="مسح المحادثة" aria-label="مسح المحادثة">🗑</button>
+      </div>
+    </header>
+
+    <!-- ===================== شاشة الترحيب ===================== -->
+    <section id="welcome-screen" class="welcome-screen">
+      <div class="welcome-badge">◈ توجيه</div>
+      <h2>أهلًا بك، ما هي وجهتك الجامعية؟</h2>
+      <p>اسألني عن التخصصات، قارن بينها، أو أخبرني بشعبتك ومعدلك لأقترح عليك الأنسب.</p>
+      <div class="suggestion-chips">
+        <button class="chip" data-msg="أنا شعبة رياضيات ومعدلي 15">أنا شعبة رياضيات ومعدلي 15</button>
+        <button class="chip" data-msg="قارن بين الإعلام الآلي والطب">قارن بين الإعلام الآلي والطب</button>
+        <button class="chip" data-msg="أخبرني عن الطب">أخبرني عن الطب</button>
+        <button class="chip" data-msg="اشرح لي نظام LMD">اشرح لي نظام LMD</button>
+      </div>
+    </section>
+
+    <!-- ===================== نافذة المحادثة ===================== -->
+    <main id="chat-window" class="chat-window" role="log" aria-live="polite"></main>
+
+    <!-- مؤشر الكتابة -->
+    <div id="typing-indicator" class="typing-indicator hidden">
+      <span></span><span></span><span></span>
+    </div>
+
+    <!-- ===================== شريط الإدخال ===================== -->
+    <footer class="composer">
+      <div class="composer-inner">
+        <textarea
+          id="message-input"
+          class="composer-input"
+          rows="1"
+          placeholder="اكتب سؤالك هنا... (مثال: أخبرني عن الحقوق)"
+          aria-label="اكتب رسالتك"
+        ></textarea>
+        <button id="send-btn" class="send-btn" aria-label="إرسال">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 12L20 4L14 20L11 13L4 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+      <p class="composer-hint">اضغط Enter للإرسال، Shift+Enter لسطر جديد</p>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script src="/static/script.js"></script>
+</body>
+</html>

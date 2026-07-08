@@ -1,0 +1,428 @@
+/* =====================================================================
+   AI_Orientation — تصميم مستوحى من فكرة "التوجيه": بوصلة، أختام دبلومات،
+   وأخضر الجزائر الغامق مع لمسة نحاسية (ذهبية) بدل الألوان الجاهزة المعتادة.
+   ===================================================================== */
+
+:root {
+  --bg: #F6F1E4;
+  --bg-alt: #EFE6CE;
+  --surface: #FFFDF7;
+  --ink: #17352C;
+  --ink-soft: #4A5D55;
+  --primary: #12503F;
+  --primary-dark: #0B342A;
+  --accent: #B27F2C;
+  --accent-soft: #E6C77E;
+  --border: #DED0A6;
+  --user-bubble: #12503F;
+  --user-text: #FDF7E8;
+  --assistant-bubble: #FFFFFF;
+  --assistant-border: #E4D8AF;
+  --shadow: 0 8px 24px rgba(23, 53, 44, 0.08);
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 9px;
+  --font-display: 'Tajawal', sans-serif;
+  --font-body: 'Cairo', sans-serif;
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  --bg: #0A1916;
+  --bg-alt: #0F231E;
+  --surface: #122922;
+  --ink: #EFE8D3;
+  --ink-soft: #9FB3AA;
+  --primary: #3AA37F;
+  --primary-dark: #2C7D62;
+  --accent: #D9AE5C;
+  --accent-soft: #8A6A2D;
+  --border: #21463C;
+  --user-bubble: #2C7D62;
+  --user-text: #F5F1DF;
+  --assistant-bubble: #142E27;
+  --assistant-border: #21463C;
+  --shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  transition: background 0.35s ease, color 0.35s ease;
+}
+
+body {
+  background-image:
+    radial-gradient(circle at 100% 0%, var(--bg-alt) 0%, transparent 45%),
+    radial-gradient(circle at 0% 100%, var(--bg-alt) 0%, transparent 40%);
+  min-height: 100vh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+/* ===================== العنصر المميز: بوصلة التوجيه ===================== */
+.compass-mark {
+  position: fixed;
+  top: -60px;
+  left: -60px;
+  width: 220px;
+  height: 220px;
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
+}
+.compass-mark svg { width: 100%; height: 100%; }
+.compass-ring { fill: none; stroke: var(--primary); stroke-width: 1.4; }
+.compass-dot { fill: var(--accent); }
+.compass-needle { fill: var(--primary); }
+.compass-needle-h { fill: var(--accent); opacity: 0.75; }
+
+/* ===================== الهيكل العام ===================== */
+.app-shell {
+  position: relative;
+  z-index: 1;
+  max-width: 880px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px;
+}
+
+/* ===================== الرأس ===================== */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 4px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-brand { display: flex; align-items: center; gap: 12px; }
+
+.brand-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.brand-mark {
+  font-size: 26px;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.brand-text h1 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.25rem;
+  margin: 0;
+  color: var(--primary);
+  letter-spacing: -0.01em;
+}
+html[data-theme="dark"] .brand-text h1 { color: var(--accent-soft); }
+
+.brand-sub {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.header-actions { display: flex; gap: 8px; }
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+.icon-btn:hover { transform: translateY(-1px); background: var(--bg-alt); }
+.icon-btn:active { transform: translateY(0); }
+
+#theme-toggle .icon-moon { display: none; }
+html[data-theme="dark"] #theme-toggle .icon-sun { display: none; }
+html[data-theme="dark"] #theme-toggle .icon-moon { display: inline; }
+
+/* ===================== شاشة الترحيب ===================== */
+.welcome-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  padding: 40px 12px;
+}
+
+.welcome-badge {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  border: 1px solid var(--accent-soft);
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.welcome-screen h2 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.7rem;
+  margin: 6px 0 0;
+  color: var(--primary);
+  max-width: 480px;
+}
+html[data-theme="dark"] .welcome-screen h2 { color: var(--ink); }
+
+.welcome-screen p {
+  color: var(--ink-soft);
+  max-width: 420px;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.suggestion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 18px;
+  max-width: 560px;
+}
+
+.chip {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+html[data-theme="dark"] .chip:hover { color: var(--accent-soft); border-color: var(--accent-soft); }
+
+/* ===================== نافذة المحادثة ===================== */
+.chat-window {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 4px 12px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.chat-window.active + .welcome-screen,
+.welcome-screen.hidden {
+  display: none;
+}
+
+.msg-row {
+  display: flex;
+  gap: 10px;
+  max-width: 100%;
+  animation: rise 0.28s ease both;
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.msg-row.user { flex-direction: row-reverse; }
+
+.avatar {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+}
+.msg-row.user .avatar { background: var(--user-bubble); color: var(--user-text); }
+.msg-row.assistant .avatar { background: var(--accent-soft); color: var(--primary-dark); }
+html[data-theme="dark"] .msg-row.assistant .avatar { color: var(--bg); }
+
+.bubble {
+  max-width: 78%;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  line-height: 1.75;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow);
+}
+
+.msg-row.user .bubble {
+  background: var(--user-bubble);
+  color: var(--user-text);
+  border-bottom-left-radius: 4px;
+}
+
+.msg-row.assistant .bubble {
+  background: var(--assistant-bubble);
+  color: var(--ink);
+  border: 1px solid var(--assistant-border);
+  border-bottom-right-radius: 4px;
+}
+
+.bubble table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 0.88rem;
+}
+.bubble th, .bubble td {
+  border: 1px solid var(--assistant-border);
+  padding: 8px 10px;
+  text-align: right;
+}
+.bubble th { background: var(--bg-alt); font-family: var(--font-display); }
+
+.bubble h3 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  margin: 0 0 8px;
+  color: var(--primary);
+}
+html[data-theme="dark"] .msg-row.assistant .bubble h3 { color: var(--accent-soft); }
+
+.bubble ul, .bubble ol { margin: 6px 0; padding-inline-start: 20px; }
+.bubble p { margin: 6px 0; }
+.bubble strong { color: var(--primary); }
+html[data-theme="dark"] .bubble strong { color: var(--accent-soft); }
+
+/* مؤشر الكتابة */
+.typing-indicator {
+  display: flex;
+  gap: 5px;
+  padding: 10px 16px;
+  width: fit-content;
+  margin: 0 4px 10px;
+  background: var(--assistant-bubble);
+  border: 1px solid var(--assistant-border);
+  border-radius: var(--radius-md);
+}
+.typing-indicator.hidden { display: none; }
+.typing-indicator span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-soft);
+  animation: bounce 1.2s infinite ease-in-out;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* ===================== شريط الإدخال ===================== */
+.composer {
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(to top, var(--bg) 65%, transparent);
+  padding: 10px 0 18px;
+}
+
+.composer-inner {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 8px 10px;
+  box-shadow: var(--shadow);
+}
+
+.composer-input {
+  flex: 1;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  max-height: 140px;
+  padding: 8px 6px;
+  line-height: 1.5;
+}
+.composer-input::placeholder { color: var(--ink-soft); }
+
+.send-btn {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: var(--user-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transform: scaleX(-1); /* السهم يشير نحو الاتجاه الصحيح في RTL */
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.send-btn:hover { background: var(--primary-dark); }
+.send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.composer-hint {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  margin: 8px 0 0;
+}
+
+/* ===================== التجاوب مع الهواتف ===================== */
+@media (max-width: 640px) {
+  .app-shell { padding: 0 10px; }
+  .app-header { padding: 16px 2px 12px; }
+  .brand-text h1 { font-size: 1.05rem; }
+  .brand-sub { font-size: 0.72rem; }
+  .welcome-screen h2 { font-size: 1.35rem; }
+  .bubble { max-width: 88%; font-size: 0.9rem; }
+  .compass-mark { width: 150px; height: 150px; top: -40px; left: -40px; }
+}
+
+/* شريط التمرير */
+.chat-window::-webkit-scrollbar { width: 6px; }
+.chat-window::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* التركيز الظاهر لدواعي إمكانية الوصول */
+button:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
