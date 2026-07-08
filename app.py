@@ -234,19 +234,6 @@ def explain_lmd() -> str:
         "يعتمد النظام على وحدات تعليمية (UE) ورصيد نقاط (ECTS) قابلة للتحويل بين الجامعات."
     )
 
-explain_engineer_state()
-    # أضف هذه القائمة مع بقية القوائم في بداية الملف
-ENGINEER_STATE_KEYWORDS = [
-    "مهندس دولة",
-    "نظام مهندس دولة",
-    "هندسة دولة",
-    "مدرسة وطنية عليا",
-    "ENP",
-    "ESI",
-    "EMP",
-    "مهندس حكومي",
-]
-
 # أضف هذه الدالة الجديدة
 def explain_engineer_state() -> str:
     return (
@@ -271,8 +258,7 @@ def explain_engineer_state() -> str:
         "- المدارس العليا غالبًا ما توفر تكوينًا مكثفًا مع فرص تدريب ميدانية أفضل، ومعدلات توظيف مرتفعة.\n\n"
         "هل لديك سؤال عن مدرسة معينة أو تخصص هندسي دقيق؟"
     )
-    # 2.5) نظام مهندس دولة (يُفحص قبل LMD لأن بعض الكلمات قد تتداخل)
-if any(kw in lower_text for kw in ENGINEER_STATE_KEYWORDS):
+    
     return explain_engineer_state()
 def explain_registration() -> str:
     return (
@@ -452,6 +438,9 @@ def local_generate_response(message: str) -> str:
     if any(kw in lower_text for kw in LMD_KEYWORDS):
         return explain_lmd()
 
+    # 2.5) نظام مهندس دولة (يُفحص قبل LMD لأن بعض الكلمات قد تتداخل)
+if any(kw in lower_text for kw in ENGINEER_STATE_KEYWORDS):
+    
     # 3) الأقسام التحضيرية (يُفحص قبل التسجيل لأن بعض الكلمات قد تتشابه)
     if any(kw in lower_text for kw in CPGE_KEYWORDS):
         return explain_cpge()
